@@ -1,0 +1,34 @@
+pipeline {
+    agent { node "host" }
+
+    stages {
+        stage('Preparando a maquina') {
+            steps {
+                script {
+
+                    // Importante. Precisa adicionar no 'Path' do 'System variables' o caminho do python na VM.
+                    bat(label: "Criando a maquina virtual",
+                        script:"python -m venv --system-site-packages .venv")
+
+                    try  {
+
+                        bat(label: "Atualizando o pip",
+                            script:".\\.venv\\Scripts\\activate && python -m pip install --upgrade pip")
+
+                    } catch (ignore) { } // O projeto deve continuar mesmo se não conseguir atualizar o pip.
+
+                    bat(label: "Atualizando as bibliotecas.",
+                        script:".\\.venv\\Scripts\\activate && pip install -r .\\requirements.txt")
+
+                }
+            }
+        }
+
+        stage('Executando o robô') {
+           steps {
+               bat(label: "Rodando o projeto",
+                   script:".\\.venv\\Scripts\\activate && py .\\bot.py")
+           }
+        }
+    }
+}
